@@ -18,7 +18,25 @@ It uses the **OpenWeatherMap API** to fetch accurate and up-to-date weather data
 - 🔄 **Scrollable Forecast on Mobile** – Grid view on desktop, scrollable row on mobile.
 
 ---
-
+## 📂 Project Structure
+```bash
+Weather-app_using_React.js/
+│
+├── public/
+│ ├── backgrounds/ # Add Default & dynamic background images like  [ Clear sky,Clouds,Rain,Snow,Thunderstorm,Mist,Default ]
+│ └── index.html
+│
+├── src/
+│ ├── Components/
+│ │ ├── Weather.js  # Main weather component
+│ │ └── Weather.css # Styling for weather app
+│ ├── App.js
+│ └── index.js
+│
+├── package.json
+└── README.md
+```
+---
 ## ⚙️ Installation & Setup
 
 1. **Clone the repository**  
