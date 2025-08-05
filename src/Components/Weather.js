@@ -1,96 +1,136 @@
-
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react';
 import './Weather.css';
-import { FaSearch,FaWind } from "react-icons/fa";
-import {MdLocationOn} from 'react-icons/md';
-import {WiHumidity} from 'react-icons/wi';
+import { FaSearch, FaWind } from "react-icons/fa";
+import { MdLocationOn } from 'react-icons/md';
+import { WiHumidity } from 'react-icons/wi';
+import { BsSunrise, BsSunset } from 'react-icons/bs';
+import { FaTemperatureLow } from "react-icons/fa";
+
+
 
 const Weather = () => {
-
-    const [city, setCity] = useState('');            /* usestate->store the value */
+    const [city, setCity] = useState('');
     const [weather, setWeather] = useState();
+    const [forecast, setForecast] = useState([]);
     const [error, setError] = useState('');
 
-    const API_KEY = "b8de36fb72f5cdce5518df1ddbacf62e";                      /* API key generate use openweatherapp.org */
-    const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${API_KEY}`;
+    const API_KEY = "Replace with your OpenWeather API key"; 
+    const currentWeatherURL = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${API_KEY}`;
+    const forecastURL = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&units=metric&appid=${API_KEY}`;
 
-    function handleOnChange(event) {
-        setCity(event.target.value);           /* store the data in setCity -> setCity to store in useState */
-    }
+    // Background images based on weather type
+    const getBackground = (type) => {
+        const images = {
+            Clear: '/backgrounds/clear.jpg',
+            Clouds: '/backgrounds/clouds.jpg',
+            Rain: '/backgrounds/rain.jpg',
+            Snow: '/backgrounds/snow.jpg',
+            Thunderstorm: '/backgrounds/storm.jpg',
+            Drizzle: '/backgrounds/drizzle.jpg',
+            Mist: '/backgrounds/fog.jpg',
+            Default: '/backgrounds/default.jpg'
+        };
+        return images[type] || images['Default'];
+    };
 
-    async function fetchData() {                  /* fetch tha data and check condition data is correct or not */
+    useEffect(() => {
+        if (weather?.weather) {
+            document.body.style.backgroundImage = `url(${getBackground(weather.weather[0].main)})`;
+        }
+    }, [weather]);
+
+    const handleOnChange = (event) => {
+        setCity(event.target.value);
+    };
+
+    async function fetchData() {
         try {
-            let response = await fetch(url);
+            let response = await fetch(currentWeatherURL);
             let output = await response.json();
-            if(response.ok) {
+            if (response.ok) {
                 setWeather(output);
-                console.log(output);
                 setError('');
-            } else {
-                setError('No data found. Please enter a valid city name.')
-            }
-        }
-        catch (error) {
 
+                // Fetch forecast
+                let forecastRes = await fetch(forecastURL);
+                let forecastData = await forecastRes.json();
+                if (forecastRes.ok) {
+                    const daily = forecastData.list.filter((_, index) => index % 8 === 0);
+                    setForecast(daily);
+                }
+            } else {
+                setError('No data found. Please enter a valid city name.');
+            }
+        } catch (err) {
+            console.error(err);
+            setError('Something went wrong.');
         }
     }
-  return (
-    <div className='container'>
-        <div className='city'>
-            <input type='text' value={city} onChange={handleOnChange} placeholder='Enter any city name'></input>
-            <button onClick={() => fetchData()}>
-                <FaSearch></FaSearch>
-            </button>
-        </div>
 
-        {
-            error && <p className='error-message'>{error}</p>    /* In case error found they call useState to error show in output */
-        }
-        {
-            weather && weather.weather &&           /* weather condition check if available the fatch the data they continue process the data show UI*/
-            <div className='content'>            
-
-                <div className='weather-image'>
-                    <img src={`https://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png`} alt=''></img>
-                    <h3 className='desc'>{weather.weather[0].description}</h3>
-                </div>
-
-                <div className='weather-temp'>
-                    <h2>{weather.main.temp}<span>&deg;C</span></h2>
-                </div>
-
-                <div className='weather-city'>
-                    <div className='location'>
-                        <MdLocationOn></MdLocationOn>
-                    </div>
-                    <p>{weather.name},<span>{weather.sys.country}</span></p>
-                </div>
-
-                <div className='weather-details'>
-                    <h2>Weather Details</h2>
-                </div>
-
-                <div className='weather-stats'>
-                    <div className='wind'>
-                        <div className='wind-icon'>
-                            <FaWind></FaWind>
-                        </div>
-                        <h3 className='wind-speed'>{weather.wind.speed}<span>Km/h</span></h3>
-                        <h3 className='wind-heading'>Wind Speed</h3>
-                    </div>    
-                    <div className='humidity'>
-                        <div className='humidity-icon'>
-                            <WiHumidity></WiHumidity>
-                        </div>
-                        <h3 className='humidity-percent'>{weather.main.humidity}<span>%</span></h3>
-                        <h3 className='humidity-heading'>Humidity</h3>
-                    </div>
-                </div>
+    return (
+        <div className="container">
+            <div className="city">
+                <input
+                    type="text"
+                    value={city}
+                    onChange={handleOnChange}
+                    placeholder="Enter any city name"
+                />
+                <button onClick={fetchData}>
+                    <FaSearch />
+                </button>
             </div>
-        }
 
-    </div>
-  )
-}
+            {error && <p className="error-message">{error}</p>}
 
-export default Weather        
+            {weather && weather.weather && (
+                <div>
+                    <div className="weather-image">
+                        <img
+                            src={`https://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png`}
+                            alt=""
+                        />
+                        <h3 className="desc">{weather.weather[0].description}</h3>
+                    </div>
+
+                    <div className="weather-temp">
+                        <h2>{weather.main.temp}<span>°C</span></h2>
+                    </div>
+
+                    <div className="weather-city">
+                        <MdLocationOn />
+                        <p>{weather.name}, <span>{weather.sys.country}</span></p>
+                    </div>
+
+                    {/* Weather Details Cards */}
+                    <div className="weather-cards">
+                        <div className="card"><FaTemperatureLow /> Feels Like: {weather.main.feels_like}°C</div>
+                        <div className="card"><FaWind /> Wind: {weather.wind.speed} km/h</div>
+                        <div className="card"><WiHumidity /> Humidity: {weather.main.humidity}%</div>
+                        <div className="card">🌫 Air Pressure: {weather.main.pressure} hPa</div>
+                        <div className="card"><BsSunrise /> Sunrise: {new Date(weather.sys.sunrise * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                        <div className="card"><BsSunset /> Sunset: {new Date(weather.sys.sunset * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                    </div>
+
+                    {/* Forecast Section */}
+                    <h3 className="forecast-title">◀ Next 5 Days ▶</h3>
+                    <div className="forecast">
+                        {forecast.map((day, index) => (
+                            <div key={index} className="forecast-card">
+                                <p>{new Date(day.dt_txt).toLocaleDateString()}</p>
+                                <img
+                                    src={`https://openweathermap.org/img/wn/${day.weather[0].icon}@2x.png`}
+                                    alt=""
+                                />
+                                <p>{day.main.temp}°C</p>
+                                <p>{day.weather[0].description}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default Weather;
